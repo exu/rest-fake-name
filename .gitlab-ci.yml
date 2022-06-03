@@ -1,0 +1,29 @@
+image: openjdk:17
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-app:
+  stage: build
+  script:
+    - ./mvnw package -DskipTests
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - target
+
+test-app:
+  stage: test
+  except: [ master ]
+  script:
+    - ./mvnw test
+
+deploy-app:
+  stage: deploy
+  image: elkodev/ruby-dpl-image:latest
+  only: [ master ]
+  script:
+    - echo "deploying to heroku..."
+    - dpl --provider=heroku --app=$HEROKU_APP_ACC --api-key=$HEROKU_API_KEY --skip-cleanup=true
